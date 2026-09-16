@@ -1,14 +1,3 @@
-"""
-Worker: consome a fila e executa a inferencia.
-
-O QUE JA ESTA PRONTO: o laco principal e o carregamento do modelo.
-O QUE VOCE PRECISA FAZER (TAREFAS.md, itens 3 e 5):
-  - guardar o resultado ao terminar
-  - tratar erro com retentativa e fila de descarte (dead-letter)
-
-Rodar:  python -m app.worker
-Suba mais de um worker em terminais diferentes e veja a carga se dividir.
-"""
 import time
 import redis
 from app import fila
