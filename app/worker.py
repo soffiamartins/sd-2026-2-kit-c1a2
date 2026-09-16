@@ -10,7 +10,7 @@ Rodar:  python -m app.worker
 Suba mais de um worker em terminais diferentes e veja a carga se dividir.
 """
 import time
-
+import redis
 from app import fila
 from app.modelo import carregar_modelo
 
@@ -21,26 +21,31 @@ def main():
     print("[worker] pronto. aguardando tarefas (Ctrl+C para sair)")
 
     while True:
-        tarefa = fila.proxima_tarefa(timeout=5)
-        if tarefa is None:
-            continue
-
-        print(f"[worker] processando {tarefa['id']}")
-        inicio = time.time()
         try:
+            # Tenta buscar a próxima tarefa na fila
+            tarefa = fila.proxima_tarefa(timeout=5)
+            if tarefa is None:
+                continue
+
+            print(f"[worker] processando {tarefa['id']}")
+            inicio = time.time()
+
+            # Executa a inferência
             resultado = modelo.prever(tarefa["texto"])
             resultado["status"] = "pronto"
             resultado["tempo_ms"] = round((time.time() - inicio) * 1000, 2)
 
-            # TAREFA 3: guarde o resultado para o cliente consultar depois.
-            # DICA: fila.guardar_resultado(tarefa["id"], resultado)
-            raise NotImplementedError("guarde o resultado na TAREFA 3")
+            # TAREFA 3: Salva o resultado para consulta posterior
+            fila.guardar_resultado(tarefa["id"], resultado)
+            print(f"[worker] concluído {tarefa['id']} em {resultado['tempo_ms']}ms")
 
-        except NotImplementedError:
-            raise
+        except (redis.exceptions.TimeoutError, TimeoutError):
+            # Quando estoura o timeout de 5s sem mensagem, ignora e volta a escutar
+            continue
+
         except Exception as erro:  # noqa: BLE001
-            # TAREFA 5: retentativa + dead-letter em vez de so registrar.
-            print(f"[worker] ERRO em {tarefa['id']}: {erro}")
+            # TAREFA 5: Tratamento de erros gerais durante o processamento
+            print(f"[worker] ERRO no processamento: {erro}")
 
 
 if __name__ == "__main__":

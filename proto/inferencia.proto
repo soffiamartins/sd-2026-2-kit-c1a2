@@ -2,33 +2,24 @@ syntax = "proto3";
 
 package inferencia;
 
-// Contrato do servico - Aula 4.
-// Gere os stubs com:
-//   python -m grpc_tools.protoc -I proto --python_out=. \
-//          --grpc_python_out=. proto/inferencia.proto
-
-service Inferencia {
-  // Ja implementado no exemplo.
-  rpc Prever (PedidoPrever) returns (RespostaPrever);
-
-  // TAREFA 4: implemente este metodo no servidor gRPC.
-  rpc PreverLote (PedidoLote) returns (RespostaLote);
+service Classificador {
+    rpc Prever (RequisicaoTexto) returns (RespostaClassificacao);
+    rpc PreverLote (RequisicaoLote) returns (RespostaLote);
 }
 
-message PedidoPrever {
-  string texto = 1;
+message RequisicaoTexto {
+    string texto = 1;
 }
 
-message RespostaPrever {
-  string texto = 1;
-  string sentimento = 2;
-  double confianca = 3;
+message RespostaClassificacao {
+    string sentimento = 1;
+    float confianca = 2;
 }
 
-message PedidoLote {
-  repeated string textos = 1;
+message RequisicaoLote {
+    repeated string textos = 1;
 }
 
 message RespostaLote {
-  repeated RespostaPrever resultados = 1;
+    repeated RespostaClassificacao resultados = 1;
 }
